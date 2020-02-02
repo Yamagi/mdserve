@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
 	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
+	"strings"
+	"syscall"
 )
 
 // ----
@@ -25,11 +28,31 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 // Serves HTTP requests.
 func serveHTTP(addr string, dir string) {
+	// Setup server.
+	srv := http.Server {
+		Addr: addr,
+	}
+
+	// Shut HTTP server down when signaled.
+	done := make(chan bool)
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+		<-sig
+
+		if err := srv.Shutdown(context.Background()); err != nil {
+			varpanic("%v", err)
+		}
+		close(done)
+	}()
+
+	// Start serving.
 	fmt.Printf("Serving on http://%v\n", addr)
 	http.HandleFunc("/", handleRequest)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		varpanic("%v", err)
 	}
+	<-done
 }
 
 // ----
