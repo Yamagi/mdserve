@@ -7,10 +7,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
 )
+
+// ----
+
+// Base dir to serve data from.
+var basedir string
 
 // ----
 
@@ -23,11 +29,45 @@ func varpanic(format string, args ...interface{}) {
 // ----
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hallo Welt"))
+	// Sanitize the requested file path.
+	requestpath := path.Clean(r.URL.Path)
+	if strings.Compare(requestpath[:1], "/") == 0 {
+		requestpath = requestpath[1:]
+	} else if strings.Compare(requestpath[:3], "../") == 0 {
+		requestpath = requestpath[3:]
+	}
+
+	// TODO: Handle static assets crunched into the binary.
+
+	// Everything else are files read from the filesystem.
+	// Make sure that they exist and we've got permissions.
+	requestpath = filepath.Join(basedir, requestpath)
+	if stat, err := os.Stat(requestpath); err == nil {
+		mode := stat.Mode()
+		if !mode.IsRegular() || mode & (1 << 7) == 0 {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("403: Forbidden"))
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404: Not found"))
+		return
+	}
+
+	// If it's not a Markdown file, just return it.
+	// Otherwise convert the Mardown file to HTML.
+	requestext := filepath.Ext(requestpath)
+	if strings.Compare(requestext, ".md") != 0 &&
+		strings.Compare(requestext, ".markdown") != 0 {
+			http.ServeFile(w, r, requestpath)
+	} else {
+			w.Write([]byte("Markdown"))
+	}
 }
 
 // Serves HTTP requests.
-func serveHTTP(addr string, dir string) {
+func serveHTTP(addr string) {
 	// Setup server.
 	srv := http.Server {
 		Addr: addr,
@@ -77,7 +117,13 @@ func main() {
 	} else {
 		varpanic("No such file or directory: %v", *dirptr)
 	}
-	dir, err := filepath.EvalSymlinks(*dirptr)
+
+	var err error
+	basedir, err = filepath.EvalSymlinks(*dirptr)
+	if err != nil {
+		varpanic("Couldn't get full path: %v", *dirptr)
+	}
+	basedir, err = filepath.Abs(basedir)
 	if err != nil {
 		varpanic("Couldn't get full path: %v", *dirptr)
 	}
@@ -88,5 +134,5 @@ func main() {
 	}
 
 	// ...and go to work.
-	serveHTTP(addr, dir)
+	serveHTTP(addr)
 }
