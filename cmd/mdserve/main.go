@@ -15,9 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	// Bluemonday HTML sanitizer
-	"github.com/microcosm-cc/bluemonday"
-
 	// Chroma HTML formatter
 	// (Used by Goldmark)
 	"github.com/alecthomas/chroma/formatters/html"
@@ -37,9 +34,6 @@ import (
 
 // Base dir to serve data from.
 var basedir string
-
-// Global bluemonday instance
-var bm *bluemonday.Policy
 
 // Global Goldmark instance
 var gm goldmark.Markdown
@@ -74,9 +68,7 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 		w.Write([]byte("500: Internal server error"))
 		return
 	}
-
-	// ...sanitize it (better be save than sorry)...
-	cleanhtml := bm.Sanitize(rawhtml.String())
+	html := rawhtml.String()
 
 	// ...extract the metadata...
 	metadata := meta.Get(context)
@@ -106,7 +98,7 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 	}
 
 	// ...put everything into the template...
-	finalhtml := fmt.Sprintf(template, title, cleanhtml, date)
+	finalhtml := fmt.Sprintf(template, title, html, date)
 
 	// ...and return it to the client.
 	w.Write([]byte(finalhtml))
@@ -229,9 +221,8 @@ func main() {
 		varpanic("Couldn't load md.tmpl: %v", err)
 	}
 
-	// ...initialiize global instances...
+	// ...initialize global Goldmark instance...
 	// TODO: German typography
-	bm = bluemonday.UGCPolicy()
 	gm = goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
@@ -240,7 +231,7 @@ func main() {
 			extension.Typographer,
 			meta.Meta,
 			highlighting.NewHighlighting(
-				highlighting.WithStyle("monokai"),
+				highlighting.WithStyle("tango"),
 				highlighting.WithFormatOptions(
 					html.WithLineNumbers(true),
 				),
