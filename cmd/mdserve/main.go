@@ -38,6 +38,9 @@ var basedir string
 // Global Goldmark instance
 var gm goldmark.Markdown
 
+// Language to generate for
+var lang string
+
 // Static assets
 var css []byte
 var template string
@@ -98,7 +101,7 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 	}
 
 	// ...put everything into the template...
-	finalhtml := fmt.Sprintf(template, title, html, date)
+	finalhtml := fmt.Sprintf(template, lang, title, html, date)
 
 	// ...and return it to the client.
 	w.Write([]byte(finalhtml))
@@ -187,6 +190,7 @@ func main() {
 	// Parse and check flags...
 	var addrptr = flag.String("a", "localhost:8080", "Listen address")
 	var dirptr = flag.String("d", ".", "Directory to serve")
+	var langptr = flag.String("l", "de", "Typographic language")
 	flag.Parse()
 
 	if stat, err := os.Stat(*dirptr); err == nil {
@@ -195,6 +199,11 @@ func main() {
 		}
 	} else {
 		varpanic("No such file or directory: %v", *dirptr)
+	}
+
+	addr := *addrptr
+	if strings.Compare(addr[:1], ":") == 0 {
+		addr = fmt.Sprintf("localhost%v", addr)
 	}
 
 	var err error
@@ -207,9 +216,22 @@ func main() {
 		varpanic("Couldn't get full path: %v", *dirptr)
 	}
 
-	addr := *addrptr
-	if strings.Compare(addr[:1], ":") == 0 {
-		addr = fmt.Sprintf("localhost%v", addr)
+	var typo_lsq string
+	var typo_rsq string
+	var typo_ldq string
+	var typo_rdq string
+	if strings.Compare(*langptr, "de") == 0 {
+		typo_lsq = "&sbquo;"
+		typo_rsq = "&lsquo;"
+		typo_ldq = "&bdquo;"
+		typo_rdq = "&ldquo;"
+		lang = "de"
+	} else {
+		typo_lsq = "&lsquo;"
+		typo_rsq = "&rsquo;"
+		typo_ldq = "&ldquo;"
+		typo_rdq = "&rdquo;"
+		lang = "en"
 	}
 
 	// ...load static assets...
@@ -222,14 +244,21 @@ func main() {
 	}
 
 	// ...initialize global Goldmark instance...
-	// TODO: German typography
 	gm = goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
 			extension.DefinitionList,
 			extension.Footnote,
-			extension.Typographer,
 			meta.Meta,
+			extension.NewTypographer(
+				extension.WithTypographicSubstitutions(
+					extension.TypographicSubstitutions{
+						extension.LeftSingleQuote: []byte(typo_lsq),
+						extension.RightSingleQuote: []byte(typo_rsq),
+						extension.LeftDoubleQuote: []byte(typo_ldq),
+						extension.RightDoubleQuote: []byte(typo_rdq),
+				}),
+			),
 			highlighting.NewHighlighting(
 				highlighting.WithStyle("tango"),
 				highlighting.WithFormatOptions(
