@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,12 +13,32 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	// Chroma HTML formatter
+	// (Used by Goldmark)
+	"github.com/alecthomas/chroma/formatters/html"
+
+	// Goldmark CommonMark parser
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark-highlighting"
+	"github.com/yuin/goldmark-meta"
+
+	// Bluemonday HTML sanitizer
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // ----
 
 // Base dir to serve data from.
 var basedir string
+
+// Global bluemonday instance
+var bm *bluemonday.Policy
+
+// Global Goldmark instance
+var gm goldmark.Markdown
 
 // ----
 
@@ -27,6 +49,29 @@ func varpanic(format string, args ...interface{}) {
 }
 
 // ----
+
+func getMarkdown(w http.ResponseWriter, filepath string) {
+	markdown, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500: Internal server error"))
+		return
+	}
+
+	// Convert the Markdown to HTML...
+	var rawhtml bytes.Buffer
+	if err := gm.Convert(markdown, &rawhtml); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500: Internal server error"))
+		return
+	}
+
+	// ...sanitize it (better be save than sorry)...
+	cleanhtml := bm.Sanitize(rawhtml.String())
+
+	// ...and return it to the client.
+	w.Write([]byte(cleanhtml))
+}
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Sanitize the requested file path.
@@ -62,11 +107,10 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		strings.Compare(requestext, ".markdown") != 0 {
 			http.ServeFile(w, r, requestpath)
 	} else {
-			w.Write([]byte("Markdown"))
+		getMarkdown(w, requestpath)
 	}
 }
 
-// Serves HTTP requests.
 func serveHTTP(addr string) {
 	// Setup server.
 	srv := http.Server {
@@ -132,6 +176,28 @@ func main() {
 	if strings.Compare(addr[:1], ":") == 0 {
 		addr = fmt.Sprintf("localhost%v", addr)
 	}
+
+	// ...initialiize global instances...
+	// TODO: German typography
+	bm = bluemonday.UGCPolicy()
+	gm = goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+			extension.DefinitionList,
+			extension.Footnote,
+			extension.Typographer,
+			meta.Meta,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("monokai"),
+				highlighting.WithFormatOptions(
+					html.WithLineNumbers(true),
+				),
+			),
+		),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+	)
 
 	// ...and go to work.
 	serveHTTP(addr)
