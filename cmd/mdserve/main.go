@@ -117,7 +117,9 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serve static assets.
-	if strings.Compare(requestpath, "/assets/md.css") == 0 {
+	if strings.Compare(requestpath, "/assets/md.css") == 0 ||
+		strings.Compare(requestpath, "assets/md.css") == 0 {
+		w.Header().Set("Content-Type", "text/css")
 		w.Write(css)
 		return
 	}
@@ -143,7 +145,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	requestext := filepath.Ext(requestpath)
 	if strings.Compare(requestext, ".md") != 0 &&
 		strings.Compare(requestext, ".markdown") != 0 {
-			http.ServeFile(w, r, requestpath)
+		http.ServeFile(w, r, requestpath)
 	} else {
 		getMarkdown(w, requestpath)
 	}
