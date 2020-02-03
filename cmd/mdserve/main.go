@@ -13,6 +13,10 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
+
+	// Bluemonday HTML sanitizer
+	"github.com/microcosm-cc/bluemonday"
 
 	// Chroma HTML formatter
 	// (Used by Goldmark)
@@ -25,8 +29,8 @@ import (
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
 
-	// Bluemonday HTML sanitizer
-	"github.com/microcosm-cc/bluemonday"
+	// Packr
+	"github.com/gobuffalo/packr/v2"
 )
 
 // ----
@@ -39,6 +43,10 @@ var bm *bluemonday.Policy
 
 // Global Goldmark instance
 var gm goldmark.Markdown
+
+// Static assets
+var css []byte
+var template string
 
 // ----
 
@@ -60,7 +68,8 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 
 	// Convert the Markdown to HTML...
 	var rawhtml bytes.Buffer
-	if err := gm.Convert(markdown, &rawhtml); err != nil {
+	context := parser.NewContext()
+	if err := gm.Convert(markdown, &rawhtml, parser.WithContext(context)); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500: Internal server error"))
 		return
@@ -69,8 +78,38 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 	// ...sanitize it (better be save than sorry)...
 	cleanhtml := bm.Sanitize(rawhtml.String())
 
+	// ...extract the metadata...
+	metadata := meta.Get(context)
+
+	var title string
+	rawtitle := metadata["Title"]
+	if strtitle, ok := rawtitle.(string); ok {
+		if len(strtitle) == 0 {
+			title = "mdserve: Markdown webserver"
+		} else {
+			title = strtitle
+		}
+	} else {
+		title = "mdserve: Markdown webserver"
+	}
+
+	var date string
+	rawdate := metadata["Date"]
+	if strdate, ok := rawdate.(string); ok {
+		if len(strdate) == 0 {
+			date = time.Now().Format("02 January 2006")
+		} else {
+			date = strdate
+		}
+	} else {
+		date = time.Now().Format("02 January 2006")
+	}
+
+	// ...put everything into the template...
+	finalhtml := fmt.Sprintf(template, title, cleanhtml, date)
+
 	// ...and return it to the client.
-	w.Write([]byte(cleanhtml))
+	w.Write([]byte(finalhtml))
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +121,11 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		requestpath = requestpath[3:]
 	}
 
-	// TODO: Handle static assets crunched into the binary.
+	// Serve static assets.
+	if strings.Compare(requestpath, "/assets/md.css") == 0 {
+		w.Write(css)
+		return
+	}
 
 	// Everything else are files read from the filesystem.
 	// Make sure that they exist and we've got permissions.
@@ -175,6 +218,15 @@ func main() {
 	addr := *addrptr
 	if strings.Compare(addr[:1], ":") == 0 {
 		addr = fmt.Sprintf("localhost%v", addr)
+	}
+
+	// ...load static assets...
+	box := packr.New("Static Assets", "../../assets")
+	if css, err = box.Find("md.css"); err != nil {
+		varpanic("Couldn't load md.css: %v", err)
+	}
+	if template, err = box.FindString("md.tmpl"); err != nil {
+		varpanic("Couldn't load md.tmpl: %v", err)
 	}
 
 	// ...initialiize global instances...
