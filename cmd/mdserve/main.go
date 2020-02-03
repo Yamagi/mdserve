@@ -170,8 +170,16 @@ func serveHTTP(addr string) {
 		close(done)
 	}()
 
+	// Print URL string
+	indexpath := path.Join(basedir, "index.md")
+	if _, err := os.Stat(indexpath); err != nil {
+		fmt.Printf("Serving on http://%v\n", addr)
+	} else {
+		fmt.Printf("Serving on http://%v/index.md\n", addr)
+	}
+
+
 	// Start serving.
-	fmt.Printf("Serving on http://%v\n", addr)
 	http.HandleFunc("/", handleRequest)
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		varpanic("%v", err)
