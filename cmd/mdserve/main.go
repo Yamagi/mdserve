@@ -92,12 +92,12 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 	rawdate := metadata["Date"]
 	if strdate, ok := rawdate.(string); ok {
 		if len(strdate) == 0 {
-			date = time.Now().Format("02 January 2006")
+			date = time.Now().Format("02. January 2006")
 		} else {
 			date = strdate
 		}
 	} else {
-		date = time.Now().Format("02 January 2006")
+		date = time.Now().Format("02. January 2006")
 	}
 
 	// ...put everything into the template...
