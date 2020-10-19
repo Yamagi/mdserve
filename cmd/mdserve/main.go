@@ -26,8 +26,11 @@ import (
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
 
-	// Packr
-	"github.com/gobuffalo/packr/v2"
+	// Packr...
+	"github.com/phogolabs/parcello"
+
+	// ...and the assets
+	_ "github.com/yamagi/mdserve/assets"
 )
 
 // ----
@@ -43,7 +46,7 @@ var lang string
 
 // Static assets
 var css []byte
-var template string
+var template []byte
 
 // ----
 
@@ -101,7 +104,7 @@ func getMarkdown(w http.ResponseWriter, filepath string) {
 	}
 
 	// ...put everything into the template...
-	finalhtml := fmt.Sprintf(template, lang, title, html, date)
+	finalhtml := fmt.Sprintf(string(template), lang, title, html, date)
 
 	// ...and return it to the client.
 	w.Write([]byte(finalhtml))
@@ -245,13 +248,23 @@ func main() {
 	}
 
 	// ...load static assets...
-	box := packr.New("Static Assets", "../../assets")
-	if css, err = box.Find("md.css"); err != nil {
+	cssfile, err := parcello.Open("md.css")
+	if err != nil {
 		varpanic("Couldn't load md.css: %v", err)
 	}
-	if template, err = box.FindString("md.tmpl"); err != nil {
+	if css, err = ioutil.ReadAll(cssfile); err != nil {
+		varpanic("Couldn't read md.css: %v", err)
+	}
+	cssfile.Close()
+
+	templatefile, err := parcello.Open("md.tmpl")
+	if err != nil {
 		varpanic("Couldn't load md.tmpl: %v", err)
 	}
+	if template, err = ioutil.ReadAll(templatefile); err != nil {
+		varpanic("Couldn't read md.tmpl: %v", err)
+	}
+	templatefile.Close()
 
 	// ...initialize global Goldmark instance...
 	gm = goldmark.New(

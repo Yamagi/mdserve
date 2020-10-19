@@ -40,12 +40,8 @@ Some other extensions are available:
 
 ## Installation
 
-You'll need the *go* tools in version 1.13 or higher. Additionally
-*packr2* is required to crunch the static assets into the binary, it
-can be installed with:
-
-  `% go get -u github.com/gobuffalo/packr/v2/packr`
+You'll need the *go* tools in version 1.13 or higher.
 
 1. Clone the Github repo into a local directory and change into it.
-2. Create the packr files: `% cd cmd/mdserve; packr2; cd -`
-3. Compile the executable: `go build github.com/yamagi/mdserve/cmd/mdserve`
+2. Pack the assets: `% go generate ./assets`
+3. Compile the executable: `go build ./cmd/mdserve`
