@@ -24,6 +24,7 @@ file, if available.
 * **-d**: Web root directory, defaults to `.`.
 * **-l**: Language for typography and hyphenation, defaults to `de`.
   Currently only `de` and `en` are supported.
+* **-q**: Be quiet, suppress console output.
 
 
 ## Markdown dialect

@@ -44,6 +44,9 @@ var gm goldmark.Markdown
 // Language to generate for.
 var lang string
 
+// Be quiet.
+var quiet bool
+
 // Static assets.
 var css []byte
 var template []byte
@@ -199,15 +202,17 @@ func serveHTTP(addr string) {
 	}()
 
 	// Print URL string
-	indexpath := path.Join(basedir, "index.md")
-	if _, err := os.Stat(indexpath); err != nil {
-		fmt.Printf("Serving on http://%v\n", addr)
-	} else {
-		if fd, err := os.Open(indexpath); err != nil {
+	if (!quiet) {
+		indexpath := path.Join(basedir, "index.md")
+		if _, err := os.Stat(indexpath); err != nil {
 			fmt.Printf("Serving on http://%v\n", addr)
 		} else {
-			fd.Close()
-			fmt.Printf("Serving on http://%v/index.md\n", addr)
+			if fd, err := os.Open(indexpath); err != nil {
+				fmt.Printf("Serving on http://%v\n", addr)
+			} else {
+				fd.Close()
+				fmt.Printf("Serving on http://%v/index.md\n", addr)
+			}
 		}
 	}
 
@@ -234,7 +239,10 @@ func main() {
 	var addrptr = flag.String("a", "localhost:8080", "Listen address")
 	var dirptr = flag.String("d", ".", "Directory to serve")
 	var langptr = flag.String("l", "de", "Typographic language")
+	var quietptr = flag.Bool("q", false, "Be quiet")
 	flag.Parse()
+
+	quiet = *quietptr
 
 	if stat, err := os.Stat(*dirptr); err == nil {
 		if !stat.IsDir() {
