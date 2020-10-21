@@ -132,10 +132,20 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	requestpath = filepath.Join(basedir, requestpath)
 	if stat, err := os.Stat(requestpath); err == nil {
 		mode := stat.Mode()
-		if !mode.IsRegular() || mode & (1 << 7) == 0 {
+		if !mode.IsRegular() {
+			// Not a file -> Don't serve it.
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("403: Forbidden"))
 			return
+		} else {
+			// Not readable -> Don't serve it.
+			if fd, err := os.Open(requestpath); err != nil {
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("403: Forbidden"))
+				return
+			} else {
+				fd.Close()
+			}
 		}
 	} else {
 		w.WriteHeader(http.StatusNotFound)
@@ -178,7 +188,12 @@ func serveHTTP(addr string) {
 	if _, err := os.Stat(indexpath); err != nil {
 		fmt.Printf("Serving on http://%v\n", addr)
 	} else {
-		fmt.Printf("Serving on http://%v/index.md\n", addr)
+		if fd, err := os.Open(indexpath); err != nil {
+			fmt.Printf("Serving on http://%v\n", addr)
+		} else {
+			fd.Close()
+			fmt.Printf("Serving on http://%v/index.md\n", addr)
+		}
 	}
 
 
