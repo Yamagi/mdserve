@@ -130,9 +130,24 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Everything else are files read from the filesystem.
 	// Make sure that they exist and we've got permissions.
 	requestpath = filepath.Join(basedir, requestpath)
-	if stat, err := os.Stat(requestpath); err == nil {
-		mode := stat.Mode()
-		if !mode.IsRegular() {
+	if reqstat, err := os.Stat(requestpath); err == nil {
+		reqmode := reqstat.Mode()
+		if reqmode.IsDir() {
+			// A dir -> Serve index.md if any.
+			indexpath := filepath.Join(requestpath, "index.md")
+			if indexstat, err := os.Stat(indexpath); err == nil {
+				indexmode := indexstat.Mode()
+				if indexmode.IsRegular() {
+					if fd, err := os.Open(indexpath); err == nil {
+						// A readable index.md -> Serve it.
+						fd.Close()
+						getMarkdown(w, indexpath)
+						return
+					}
+				}
+			}
+		}
+		if !reqmode.IsRegular() {
 			// Not a file -> Don't serve it.
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("403: Forbidden"))
