@@ -15,21 +15,21 @@ import (
 	"syscall"
 	"time"
 
-	// Chroma HTML formatter
+	// Chroma HTML formatter.
 	// (Used by Goldmark)
 	"github.com/alecthomas/chroma/formatters/html"
 
-	// Goldmark CommonMark parser
+	// Goldmark CommonMark parser.
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
 
-	// Packr...
+	// Parcello...
 	"github.com/phogolabs/parcello"
 
-	// ...and the assets
+	// ...and the assets.
 	_ "github.com/yamagi/mdserve/assets"
 )
 
@@ -38,13 +38,13 @@ import (
 // Base dir to serve data from.
 var basedir string
 
-// Global Goldmark instance
+// Global Goldmark instance.
 var gm goldmark.Markdown
 
-// Language to generate for
+// Language to generate for.
 var lang string
 
-// Static assets
+// Static assets.
 var css []byte
 var template []byte
 
