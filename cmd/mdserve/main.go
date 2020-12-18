@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path"
@@ -136,15 +137,20 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	if reqstat, err := os.Stat(requestpath); err == nil {
 		reqmode := reqstat.Mode()
 		if reqmode.IsDir() {
-			// A dir -> Serve index.md if any.
+			// A dir -> Redirect to index.md if any.
 			indexpath := filepath.Join(requestpath, "index.md")
 			if indexstat, err := os.Stat(indexpath); err == nil {
 				indexmode := indexstat.Mode()
 				if indexmode.IsRegular() {
 					if fd, err := os.Open(indexpath); err == nil {
-						// A readable index.md -> Serve it.
+						// A readable index.md -> Redirect to it.
 						fd.Close()
-						getMarkdown(w, indexpath)
+						target := url.URL{
+							Scheme: "http",
+							Host: r.Host,
+							Path: path.Join(r.URL.Path, "index.md"),
+						}
+						http.Redirect(w, r, target.String(), http.StatusMovedPermanently)
 						return
 					}
 				}
