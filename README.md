@@ -21,6 +21,8 @@ file, if available.
 
 * **-a**: Listen address. Must be given with port, e.g. `10.0.0.1:8080`.
   Defaults to `localhost:8080`.
+* **-c**: Use an alternative CSS with left aligned text and no
+  hyphenation.
 * **-d**: Web root directory, defaults to `.`.
 * **-l**: Language for typography and hyphenation, defaults to `de`.
   Currently only `de` and `en` are supported.
