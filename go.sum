@@ -49,6 +49,7 @@ github.com/onsi/ginkgo v1.10.3 h1:OoxbjfXVZyod1fmWYhI7SEyaD8B00ynP3T+D5GiyHOY=
 github.com/onsi/ginkgo v1.10.3/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.7.1 h1:K0jcRCwNQM3vFGh1ppMtDh/+7ApJrjldlX8fA0jDTLQ=
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
+github.com/phogolabs/cli v0.0.0-20191212161310-ce689d871370 h1:jGx4KpaIpen14V5GR/valO9BoaDjqiqSSlS0l4WLGJ4=
 github.com/phogolabs/cli v0.0.0-20191212161310-ce689d871370/go.mod h1:grzrc/EIac+v5wd6EjBB4a9obKGGIdsgWhPIsqjBGLo=
 github.com/phogolabs/parcello v0.8.1/go.mod h1:/HlY+yKSdyM8MUX9YvwT3+sED9SKXizc5zfuHDh6+to=
 github.com/phogolabs/parcello v0.8.2 h1:XFNJw82IXEARNHFXh2FlsVOOEwjIQkoeKmgNRyH7264=
