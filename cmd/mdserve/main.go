@@ -22,10 +22,10 @@ import (
 
 	// Goldmark CommonMark parser.
 	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 
 	// Parcello...
 	"github.com/phogolabs/parcello"
@@ -147,8 +147,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 						fd.Close()
 						target := url.URL{
 							Scheme: "http",
-							Host: r.Host,
-							Path: path.Join(r.URL.Path, "index.md"),
+							Host:   r.Host,
+							Path:   path.Join(r.URL.Path, "index.md"),
 						}
 						http.Redirect(w, r, target.String(), http.StatusMovedPermanently)
 						return
@@ -190,7 +190,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 func serveHTTP(addr string) {
 	// Setup server.
-	srv := http.Server {
+	srv := http.Server{
 		Addr: addr,
 	}
 
@@ -208,7 +208,7 @@ func serveHTTP(addr string) {
 	}()
 
 	// Print URL string
-	if (!quiet) {
+	if !quiet {
 		indexpath := path.Join(basedir, "index.md")
 		if _, err := os.Stat(indexpath); err != nil {
 			fmt.Printf("Serving on http://%v\n", addr)
@@ -221,7 +221,6 @@ func serveHTTP(addr string) {
 			}
 		}
 	}
-
 
 	// Start serving.
 	http.HandleFunc("/", handleRequest)
@@ -243,10 +242,18 @@ func main() {
 
 	// Parse and check flags...
 	var addrptr = flag.String("a", "localhost:8080", "Listen address")
+	var altcssptr = flag.Bool("c", false, "Alternate CSS with left aligned text")
 	var dirptr = flag.String("d", ".", "Directory to serve")
 	var langptr = flag.String("l", "de", "Typographic language")
 	var quietptr = flag.Bool("q", false, "Be quiet")
 	flag.Parse()
+
+	var cssname string
+	if *altcssptr {
+		cssname = "md-alt.css"
+	} else {
+		cssname = "md.css"
+	}
 
 	quiet = *quietptr
 
@@ -292,12 +299,12 @@ func main() {
 	}
 
 	// ...load static assets...
-	cssfile, err := parcello.Open("md.css")
+	cssfile, err := parcello.Open(cssname)
 	if err != nil {
-		varpanic("Couldn't load md.css: %v", err)
+		varpanic("Couldn't load %v: %v", cssname, err)
 	}
 	if css, err = ioutil.ReadAll(cssfile); err != nil {
-		varpanic("Couldn't read md.css: %v", err)
+		varpanic("Couldn't read %v: %v", cssname, err)
 	}
 	cssfile.Close()
 
@@ -320,11 +327,11 @@ func main() {
 			extension.NewTypographer(
 				extension.WithTypographicSubstitutions(
 					extension.TypographicSubstitutions{
-						extension.LeftSingleQuote: []byte(typo_lsq),
+						extension.LeftSingleQuote:  []byte(typo_lsq),
 						extension.RightSingleQuote: []byte(typo_rsq),
-						extension.LeftDoubleQuote: []byte(typo_ldq),
+						extension.LeftDoubleQuote:  []byte(typo_ldq),
 						extension.RightDoubleQuote: []byte(typo_rdq),
-				}),
+					}),
 			),
 			highlighting.NewHighlighting(
 				highlighting.WithStyle("tango"),
