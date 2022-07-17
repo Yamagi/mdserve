@@ -296,24 +296,12 @@ func main() {
 	}
 
 	// ...load static assets...
-
-	cssfile, err := assets.FS.Open(cssname)
-	if err != nil {
-		varpanic("Couldn't load %v: %v", cssname, err)
-	}
-	if css, err = ioutil.ReadAll(cssfile); err != nil {
+	if css, err = assets.FS.ReadFile(cssname); err != nil {
 		varpanic("Couldn't read %v: %v", cssname, err)
 	}
-	cssfile.Close()
-
-	templatefile, err := assets.FS.Open("md.tmpl")
-	if err != nil {
-		varpanic("Couldn't load md.tmpl: %v", err)
-	}
-	if template, err = ioutil.ReadAll(templatefile); err != nil {
+	if template, err = assets.FS.ReadFile("md.tmpl"); err != nil {
 		varpanic("Couldn't read md.tmpl: %v", err)
 	}
-	templatefile.Close()
 
 	// ...initialize global Goldmark instance...
 	gm = goldmark.New(
