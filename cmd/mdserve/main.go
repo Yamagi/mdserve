@@ -239,17 +239,17 @@ func main() {
 
 	// Parse and check flags...
 	var addrptr = flag.String("a", "localhost:8080", "Listen address")
-	var altcssptr = flag.Bool("c", false, "Alternate CSS with left aligned text")
 	var dirptr = flag.String("d", ".", "Directory to serve")
+	var justcssptr = flag.Bool("j", false, "Text with full justification")
 	var langptr = flag.String("l", "de", "Typographic language")
 	var quietptr = flag.Bool("q", false, "Be quiet")
 	flag.Parse()
 
-	var cssname string
-	if *altcssptr {
-		cssname = "md-alt.css"
+	var csstype string
+	if *justcssptr {
+		csstype = "md-block.css"
 	} else {
-		cssname = "md.css"
+		csstype = "md-left.css"
 	}
 
 	quiet = *quietptr
@@ -296,8 +296,8 @@ func main() {
 	}
 
 	// ...load static assets...
-	if css, err = assets.FS.ReadFile(cssname); err != nil {
-		varpanic("Couldn't read %v: %v", cssname, err)
+	if css, err = assets.FS.ReadFile(csstype); err != nil {
+		varpanic("Couldn't read %v: %v", csstype, err)
 	}
 	if template, err = assets.FS.ReadFile("md.tmpl"); err != nil {
 		varpanic("Couldn't read md.tmpl: %v", err)
