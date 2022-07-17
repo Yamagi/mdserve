@@ -245,14 +245,10 @@ func main() {
 	var quietptr = flag.Bool("q", false, "Be quiet")
 	flag.Parse()
 
-	var csstype string
-	if *justcssptr {
-		csstype = "md-block.css"
-	} else {
-		csstype = "md-left.css"
+	addr := *addrptr
+	if strings.Compare(addr[:1], ":") == 0 {
+		addr = fmt.Sprintf("localhost%v", addr)
 	}
-
-	quiet = *quietptr
 
 	if stat, err := os.Stat(*dirptr); err == nil {
 		if !stat.IsDir() {
@@ -260,11 +256,6 @@ func main() {
 		}
 	} else {
 		varpanic("No such file or directory: %v", *dirptr)
-	}
-
-	addr := *addrptr
-	if strings.Compare(addr[:1], ":") == 0 {
-		addr = fmt.Sprintf("localhost%v", addr)
 	}
 
 	var err error
@@ -275,6 +266,13 @@ func main() {
 	basedir, err = filepath.Abs(basedir)
 	if err != nil {
 		varpanic("Couldn't get full path: %v", *dirptr)
+	}
+
+	var csstype string
+	if *justcssptr {
+		csstype = "md-block.css"
+	} else {
+		csstype = "md-left.css"
 	}
 
 	var typo_lsq string
@@ -294,6 +292,8 @@ func main() {
 		typo_rdq = "&rdquo;"
 		lang = "en"
 	}
+
+	quiet = *quietptr
 
 	// ...load static assets...
 	if css, err = assets.FS.ReadFile(csstype); err != nil {
