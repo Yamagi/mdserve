@@ -1,4 +1,9 @@
-// Dummy package that contains the assets.
+// Wrapper package that holds the assets.
 package assets
 
-//go:generate go run github.com/phogolabs/parcello/cmd/parcello -r -i test.md
+import (
+	"embed"
+)
+
+//go:embed md-alt.css md.css md.tmpl
+var FS embed.FS

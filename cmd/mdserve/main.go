@@ -27,11 +27,8 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 
-	// Parcello...
-	"github.com/phogolabs/parcello"
-
-	// ...and the assets.
-	_ "github.com/yamagi/mdserve/assets"
+	// The assets.
+	"github.com/yamagi/mdserve/assets"
 )
 
 // ----
@@ -299,7 +296,8 @@ func main() {
 	}
 
 	// ...load static assets...
-	cssfile, err := parcello.Open(cssname)
+
+	cssfile, err := assets.FS.Open(cssname)
 	if err != nil {
 		varpanic("Couldn't load %v: %v", cssname, err)
 	}
@@ -308,7 +306,7 @@ func main() {
 	}
 	cssfile.Close()
 
-	templatefile, err := parcello.Open("md.tmpl")
+	templatefile, err := assets.FS.Open("md.tmpl")
 	if err != nil {
 		varpanic("Couldn't load md.tmpl: %v", err)
 	}

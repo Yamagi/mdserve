@@ -21,7 +21,7 @@ file, if available.
 
 * **-a**: Listen address. Must be given with port, e.g. `10.0.0.1:8080`.
   Defaults to `localhost:8080`.
-* **-c**: Use an alternative CSS with left aligned text and no
+* **-c**: Use an alternative CSS with left aligned text and no auto
   hyphenation.
 * **-d**: Web root directory, defaults to `.`.
 * **-l**: Language for typography and hyphenation, defaults to `de`.
@@ -43,8 +43,7 @@ Some other extensions are available:
 
 ## Installation
 
-You'll need the *go* tools in version 1.13 or higher.
+You'll need the *go* tools in version 1.18 or higher.
 
 1. Clone the Github repo into a local directory and change into it.
-2. Pack the assets: `% go generate ./assets`
-3. Compile the executable: `go build ./cmd/mdserve`
+2. Compile the executable: `go build ./cmd/mdserve`
