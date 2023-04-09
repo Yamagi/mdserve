@@ -2,30 +2,30 @@
 
 *mdserve* is a Markdown webserver. It's pointed to a directory; all
 assets in that directory become available through HTTP, Markdown files
-are converted to HTML on the fly. Nothing is stored on disk, so the
-directory isn't cluttered with state files and other crap. Files are
-updated as soon as they're changed on disk, it's enough to hit the
-browsers refresh button to get the latest version.
+are converted to HTML on the fly. Nothing is stored on disk, the
+directory isn't cluttered with state files. Files are updated as soon as
+they're changed on disk, it's enough to refresh the page to get the
+latest version.
 
 
 ## Usage
 
-*mdserve* is as easy as it gets: If `mdserve` is called it's started
-with the current working directory as web root directory and an URL
-(which can be openend on the browser of choice) is printed. The URL
-either points to the root directory (the server will return 403, the
-user must enter the path to a Markdown file by hand) or to an index.md
-file, if available.
+*mdserve* is as easy as it gets: If `mdserve` is called without any
+arguments, it's started with the current working directory as web root
+directory and an URL (which can be openend on the browser of choice) is
+printed. The URL either points to the root directory (the server will
+return 403, the user must enter the path to a Markdown file by hand) or
+to an index.md file, if available.
 
 **Command line options**:
 
 * **-a**: Listen address. Must be given with port, e.g. `10.0.0.1:8080`.
   Defaults to `localhost:8080`.
-* **-c**: Use an alternative CSS with left aligned text and no auto
-  hyphenation.
 * **-d**: Web root directory, defaults to `.`.
+* **-j**: Use an alternative CSS with centered text and auto
+  hyphenation.
 * **-l**: Language for typography and hyphenation, defaults to `de`.
-  Currently only `de` and `en` are supported.
+  Currently `de` and `en` are supported.
 * **-q**: Be quiet, suppress console output.
 
 
