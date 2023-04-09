@@ -5,5 +5,5 @@ import (
 	"embed"
 )
 
-//go:embed md.tmpl md-block.css md-left.css
+//go:embed md.tmpl md-block.css md-left.css katex/*
 var FS embed.FS

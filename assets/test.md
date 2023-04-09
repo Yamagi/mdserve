@@ -191,3 +191,13 @@ int main(void)
 	return 0;
 }
 ```
+
+
+## KaTeX
+
+KaTeX supports both inline math like $\frac{1}{2}$ and complex formulars
+like this:
+
+$$
+A = \pi \times r^2
+$$

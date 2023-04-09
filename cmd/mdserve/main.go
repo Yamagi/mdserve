@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,6 +27,9 @@ import (
 	"github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
+
+	// KaTeX support for Goldmark.
+	"github.com/FurqanSoftware/goldmark-katex"
 
 	// Wikilink support for Goldmark
 	"go.abhg.dev/goldmark/wikilink"
@@ -124,11 +128,20 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serve static assets.
-	if strings.Compare(requestpath, "/assets/md.css") == 0 ||
-		strings.Compare(requestpath, "assets/md.css") == 0 {
+	if strings.Compare(requestpath, "assets/md.css") == 0 {
 		w.Header().Set("Content-Type", "text/css")
 		w.Write(css)
 		return
+	}
+	if strings.HasPrefix(requestpath, "assets/") {
+		file := strings.TrimPrefix(requestpath, "assets/")
+		w.Header().Set("Content-Type", mime.TypeByExtension(file))
+		if asset, err := assets.FS.ReadFile(file); err != nil {
+			varpanic("Couldn't read %v: %v", file, err)
+		} else {
+			w.Write(asset)
+			return
+		}
 	}
 
 	// Everything else are files read from the filesystem.
@@ -298,7 +311,7 @@ func main() {
 
 	quiet = *quietptr
 
-	// ...load static assets...
+	// ...preload the CSS and the HTML template...
 	if css, err = assets.FS.ReadFile(csstype); err != nil {
 		varpanic("Couldn't read %v: %v", csstype, err)
 	}
@@ -312,6 +325,7 @@ func main() {
 			extension.GFM,
 			extension.DefinitionList,
 			extension.Footnote,
+			&katex.Extender{},
 			meta.Meta,
 			&wikilink.Extender{},
 			extension.NewTypographer(

@@ -39,6 +39,7 @@ Some other extensions are available:
 * Definition lists: https://michelf.ca/projects/php-markdown/extra/#def-list
 * Footnotes: https://michelf.ca/projects/php-markdown/extra/#footnotes
 * Highlighting of fenced code blocks.
+* KaTeX math: https://katex.org/
 * WikiLinks: https://en.wikipedia.org/wiki/Hyperlink#Wikis
 
 
