@@ -125,7 +125,9 @@ Italics, bold and strikethrough: ~~***Everything together***~~
 
 Standard links: [Github](https://www.github.com)
 
-Autolinks: https://github.com
+Automatic links: https://github.com
+
+Wiki links: [[testfile.md|Testfile]]
 
 
 ## Lists

@@ -27,6 +27,9 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 
+	// Wikilink support for Goldmark
+	"go.abhg.dev/goldmark/wikilink"
+
 	// The assets.
 	"github.com/yamagi/mdserve/assets"
 )
@@ -310,6 +313,7 @@ func main() {
 			extension.DefinitionList,
 			extension.Footnote,
 			meta.Meta,
+			&wikilink.Extender{},
 			extension.NewTypographer(
 				extension.WithTypographicSubstitutions(
 					extension.TypographicSubstitutions{
